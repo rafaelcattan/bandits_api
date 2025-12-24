@@ -2,7 +2,7 @@
 Pydantic schemas for request/response validation.
 """
 from __future__ import annotations
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator, model_validator
 from datetime import date
 from typing import List
 
@@ -11,6 +11,12 @@ class VariantData(BaseModel):
     variant_id: str
     impressions: int
     clicks: int
+
+    @model_validator(mode='after')
+    def validate_clicks_impressions(self):
+        if self.clicks > self.impressions:
+            raise ValueError('clicks cannot exceed impressions')
+        return self
 
 class ExperimentData(BaseModel):
     """Request schema for POST /data."""
