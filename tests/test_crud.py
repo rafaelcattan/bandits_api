@@ -44,12 +44,14 @@ def test_insert_daily_metrics(db_session):
         VariantData(variant_id="variant", impressions=1000, clicks=70)
     ]
     crud.insert_daily_metrics(db_session, "test_exp", date(2025, 12, 22), variants)
+   
     # Verify that daily metrics were inserted
     metrics = db_session.query(models.DailyMetric).all()
     assert len(metrics) == 2
     metric_dict = {m.variant_name: (m.impressions, m.clicks) for m in metrics}
     assert metric_dict["control"] == (1000, 50)
     assert metric_dict["variant"] == (1000, 70)
+    
     # Inserting the same data again should not create duplicates (due to unique constraint)
     crud.insert_daily_metrics(db_session, "test_exp", date(2025, 12, 22), variants)
     metrics = db_session.query(models.DailyMetric).all()
