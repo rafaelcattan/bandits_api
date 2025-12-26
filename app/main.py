@@ -33,7 +33,8 @@ def root():
         "docs": "/docs",
         "endpoints": {
             "POST /data": "Submit daily experiment metrics",
-            "GET /allocation": "Get allocation percentages for the next day"
+            "GET /allocation": "Get allocation percentages for the next day",
+            "GET /metrics": "Get experiment metrics (CTR, confidence intervals)"
         }
     }
 
@@ -104,6 +105,55 @@ def get_allocation(
         date=target_date,
         allocations=allocations
     )
+
+
+@app.get("/metrics", response_model=schemas.MetricsResponse)
+def get_metrics(
+    experiment_id: str = Query(..., description="Experiment identifier"),
+    include_confidence: bool = Query(False, description="Include confidence intervals (Wilson score)"),
+    db: Session = Depends(get_db)
+):
+    """
+    Retrieve cumulative metrics (clicks, impressions, CTR) for each variant.
+    Optionally include Wilson score confidence intervals.
+    """
+    # Check if experiment exists
+    if not crud.experiment_exists(db, experiment_id):
+        raise HTTPException(status_code=404, detail=f"Experiment '{experiment_id}' not found")
+    
+    # Get CTR metrics
+    ctr_metrics = crud.get_ctr_metrics(db, experiment_id)
+    if not ctr_metrics:
+        raise HTTPException(status_code=404, detail=f"No data available for experiment '{experiment_id}'")
+    
+    # Get confidence intervals if requested
+    confidence_intervals = None
+    if include_confidence:
+        confidence_intervals = crud.get_confidence_intervals(db, experiment_id)
+    
+    # Build variant metrics list
+    variants = []
+    for var, (ctr, clicks, impressions) in ctr_metrics.items():
+        lower = upper = None
+        if include_confidence and confidence_intervals and var in confidence_intervals:
+            lower, upper = confidence_intervals[var]
+        variants.append(
+            schemas.VariantMetrics(
+                variant_id=var,
+                clicks=clicks,
+                impressions=impressions,
+                ctr=round(ctr, 4),
+                lower_bound=round(lower, 4) if lower is not None else None,
+                upper_bound=round(upper, 4) if upper is not None else None
+            )
+        )
+    
+    return schemas.MetricsResponse(
+        experiment_id=experiment_id,
+        date=date.today(),
+        variants=variants
+    )
+
 
 @app.get("/health")
 def health_check():

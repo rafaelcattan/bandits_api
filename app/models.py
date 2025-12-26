@@ -8,7 +8,7 @@ from sqlalchemy.orm import relationship
 from .database import Base
 
 class Experiment(Base):
-    """Experiments table."""
+    """Experiments table. """
     __tablename__ = "experiments"
 
     id = Column(Integer, primary_key=True, index=True)

@@ -11,6 +11,7 @@ SQLALCHEMY_DATABASE_URL = os.getenv(
     "DATABASE_URL", "sqlite:///./bandit.db"
 )
 
+# CONFIGURA O MOTOR DO BANCO DE DADOS E SESSÃO
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
     connect_args={"check_same_thread": False}  # SQLite specific
@@ -19,6 +20,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 
+# CRIA CONEXÃO DE SESSÃO
 def get_db():
     """Dependency that provides a database session."""
     db = SessionLocal()

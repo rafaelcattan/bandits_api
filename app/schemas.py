@@ -4,7 +4,7 @@ Pydantic schemas for request/response validation.
 from __future__ import annotations
 from pydantic import BaseModel, field_validator, model_validator
 from datetime import date
-from typing import List
+from typing import List, Optional
 
 class VariantData(BaseModel):
     """Data for a single variant."""
@@ -34,6 +34,24 @@ class AllocationResponse(BaseModel):
     experiment_id: str
     date: date
     allocations: List[AllocationVariant]
+
+
+class VariantMetrics(BaseModel):
+    """Metrics for a single variant."""
+    variant_id: str
+    clicks: int
+    impressions: int
+    ctr: float
+    lower_bound: Optional[float] = None
+    upper_bound: Optional[float] = None
+
+
+class MetricsResponse(BaseModel):
+    """Response schema for GET /metrics."""
+    experiment_id: str
+    date: date
+    variants: List[VariantMetrics]
+
 
 class SuccessResponse(BaseModel):
     """Generic success response."""
