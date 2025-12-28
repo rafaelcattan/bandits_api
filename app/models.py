@@ -6,7 +6,6 @@ from sqlalchemy import Column, Integer, String, Date, ForeignKey, TIMESTAMP, Uni
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from .database import Base
-
 class Experiment(Base):
     """Experiments table. """
     __tablename__ = "experiments"
